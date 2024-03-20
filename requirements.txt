@@ -1,0 +1,7 @@
+transformers
+rich
+bitsandbytes
+accelerate
+sentencepiece
+protobuf
+# pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
