@@ -1,5 +1,7 @@
-# MistralMaestro - Forked from Maestro: A Framework for Local Mistral (or other HF models) to Orchestrate Subagents
+# MistralMaestro
 <img src="https://leafmachine.org/img/dalle_mistral_maestro.jpg" width="500">
+
+### Forked from Maestro: A Framework for Local Mistral (or other HF models) to Orchestrate Subagents
 
 
 This is forked from [Maestro](https://github.com/Doriandarko/maestro), which is amazing! I like to do things for free, so this is an implementation that uses MistralAI models from Hugging Face, but you could probably use other HF models without changing too much.
@@ -8,7 +10,7 @@ This Python script demonstrates an AI-assisted task breakdown and execution work
 
 Large and Small can also be the same model. For example, if you only have a 24GB GPU and don't want to mess around with Mixtral quants, you can just use Mistral 7B's for both Large and Small. This used less than 10GB of VRAM, as long as you use the default quants in the `mistralMaestro.py` script. Let me know how well other quants work too!
 
-I had good success with `mistralai/Mistral-7B-Instruct-v0.2` for both the Large and Small models. This would let you use a 24GB card. Mixtral will also work, I've tested it on an 2x RTX 6000 Ada 48GB.  
+I had good success with `mistralai/Mistral-7B-Instruct-v0.2` for both the Large and Small models. This would let you use a 24GB card. Mixtral will also work, I've tested it on 2x RTX 6000 Ada 48GB.  
 
 
 ## Features
