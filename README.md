@@ -1,5 +1,5 @@
 # MistralMaestro - Forked from Maestro: A Framework for Local Mistral (or other HF models) to Orchestrate Subagents
-<img src="https://leafmachine.org/img/dalle_mistral_maestro.webp" width="500">
+<img src="https://leafmachine.org/img/dalle_mistral_maestro.jpg" width="500">
 
 
 This is forked from [Maestro](https://github.com/Doriandarko/maestro), which is amazing! I like to do things for free, so this is an implementation that uses MistralAI models from Hugging Face, but you could probably use other HF models without changing too much.
