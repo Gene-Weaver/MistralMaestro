@@ -10,9 +10,14 @@ import torch
 
 LARGE = "mistralai/Mistral-7B-Instruct-v0.2" # or "Mixtral-8x7B-Instruct-v0.1"
 SMALL = "mistralai/Mistral-7B-Instruct-v0.2"
-MAX_LENGTH_L = 2048
-MAX_LENGTH_S = 2048
-MAX_LENGTH_R = 4096
+MAX_NEW_TOKENS_L = 4096
+MAX_NEW_TOKENS_S = 4096
+MAX_NEW_TOKENS_R = 8192
+
+INSTRUCTIONS_REFINEMENT = "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details and edit for content accuracy and correctness as needed."
+# For coding use:
+# INSTRUCTIONS_REFINEMENT = "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. When working on code projects make sure to include the code implementation by file."
+INSTRUCTIONS_LARGE_ORCHESTRATOR = "Based on the following objective and the previous sub-task results (if any), please break down the objective into the next sub-task, and create a concise and detailed prompt for a subagent so it can execute that task, please assess if the objective has been fully achieved. If the previous sub-task results comprehensively address all aspects of the objective, include the phrase 'The task is complete:' at the beginning of your response. If the objective is not yet fully achieved, break it down into the next sub-task and create a concise and detailed prompt for a subagent to execute that task."
 
 # Initialize the Rich Console
 console = Console()
@@ -52,9 +57,9 @@ else:
 def large_orchestrator(objective, previous_results=None):
     console.print(f"\n[bold]Calling LARGE for your objective[/bold]")
     previous_results_text = "\n".join(previous_results) if previous_results else "None"
-    prompt = f"Based on the following objective and the previous sub-task results (if any), please break down the objective into the next sub-task, and create a concise and detailed prompt for a subagent so it can execute that task, please assess if the objective has been fully achieved. If the previous sub-task results comprehensively address all aspects of the objective, include the phrase 'The task is complete:' at the beginning of your response. If the objective is not yet fully achieved, break it down into the next sub-task and create a concise and detailed prompt for a subagent to execute that task.:\n\nObjective: {objective}\n\nPrevious sub-task results:\n{previous_results_text}"
+    prompt = f"{INSTRUCTIONS_LARGE_ORCHESTRATOR}:\n\nObjective: {objective}\n\nPrevious sub-task results:\n{previous_results_text}"
 
-    large_response = large_pipeline(prompt, max_length=MAX_LENGTH_L)
+    large_response = large_pipeline(prompt, max_new_tokens=MAX_NEW_TOKENS_L)
 
     response_text = large_response[0]['generated_text']
     console.print(Panel(response_text, title=f"[bold green]LARGE Orchestrator[/bold green]", title_align="left", border_style="green", subtitle="Sending task to SMALL 👇"))
@@ -63,10 +68,18 @@ def large_orchestrator(objective, previous_results=None):
 def small_sub_agent(prompt, previous_small_tasks=None):
     if previous_small_tasks is None:
         previous_small_tasks = []
+        last_task_result = "None"
+        system_message = ""
+    # To keep it from getting too long only take the most recent task result
+    elif len(previous_small_tasks) > 1:
+        last_task_result = previous_small_tasks[-1]
+        system_message = "Previous SMALL task:\n" + last_task_result + "\n\n"
+    else:
+        system_message = "Previous SMALL task:\n" + previous_small_tasks + "\n\n"
 
-    # system_message = "Previous SMALL tasks:\n" + "\n".join(previous_small_tasks)
+    full_prompt = system_message + "Prompt: " + prompt
 
-    small_response = small_pipeline(prompt, max_length=MAX_LENGTH_S)
+    small_response = small_pipeline(full_prompt, max_new_tokens=MAX_NEW_TOKENS_S)
 
     response_text = small_response[0]['generated_text']
     console.print(Panel(response_text, title="[bold blue]SMALL Sub-agent Result[/bold blue]", title_align="left", border_style="blue", subtitle="Task completed, sending result to LARGE 👇"))
@@ -74,11 +87,13 @@ def small_sub_agent(prompt, previous_small_tasks=None):
 
 
 def large_refine(objective, sub_task_results):
-    print(f"\nCalling large to provide the refined final output for your objective:")
-    prompt = f"Objective: {objective}\n\nSub-task results:\n" + "\n".join(sub_task_results) + "\n\nPlease review and refine the sub-task results into a cohesive final output. Add any missing information or details as needed. When working on code projects make sure to include the code implementation by file."
+    print(f"\nCalling LARGE to provide the refined final output for your objective:")
+    # prompt = f"Objective: {objective}\n\nSub-task results:\n" + "\n".join(sub_task_results) + ""
+    # Non code:
+    prompt = f"Objective: {objective}\n\nSub-task results:\n" + "\n".join(sub_task_results) + f"{INSTRUCTIONS_REFINEMENT}"
 
     # Use the large_pipeline for refinement as well
-    large_response = large_pipeline(prompt, max_length=MAX_LENGTH_R)
+    large_response = large_pipeline(prompt, max_new_tokens=MAX_NEW_TOKENS_R)
 
     response_text = large_response[0]['generated_text']
     console.print(Panel(response_text, title="[bold green]Final Output[/bold green]", title_align="left", border_style="green"))

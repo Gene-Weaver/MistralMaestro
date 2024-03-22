@@ -4,4 +4,7 @@ bitsandbytes
 accelerate
 sentencepiece
 protobuf
+langchain
+langchain-core
+langchain-community
 # pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
